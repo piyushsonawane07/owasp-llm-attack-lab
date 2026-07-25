@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+backend/data/
+backend/.env
+*.pt
+*.bin
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Model caches (optional local)
+.cache/
