@@ -15,6 +15,21 @@ import {
 } from 'lucide-react'
 import { PRESET_ATTACKS } from '../constants'
 
+// Collapses multiple retrieved chunks from the same document into a single
+// chip (e.g. 4 chunks from doc1.md -> one "doc1.md ×4" chip) instead of
+// showing the same filename repeated once per chunk.
+function uniqueSources(sources) {
+  const byFile = new Map()
+  for (const src of sources) {
+    const key = src.document_id || src.filename
+    if (!byFile.has(key)) {
+      byFile.set(key, { ...src, chunks: [] })
+    }
+    byFile.get(key).chunks.push(src)
+  }
+  return Array.from(byFile.values())
+}
+
 const SAMPLE_QUESTIONS = [
   // 'What are the key points in the documents?',
   // 'Summarize the main findings.',
@@ -139,13 +154,16 @@ export default function ChatView({
                     <Search className="w-3.5 h-3.5 text-tw-sapphire" /> Retrieved Context:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {msg.sources.map((src, i) => (
+                    {uniqueSources(msg.sources).map((src) => (
                       <span
-                        key={`${src.document_id}-${src.chunk_index}-${i}`}
-                        title={src.text}
+                        key={src.document_id || src.filename}
+                        title={src.chunks.map((c) => c.text).join('\n\n')}
                         className="bg-tw-mist border border-tw-wave/20 text-tw-wave px-2 py-0.5 rounded text-[11px] flex items-center gap-1 truncate max-w-full font-medium"
                       >
                         <FileText className="w-3 h-3 text-tw-sapphire shrink-0" /> {src.filename}
+                        {src.chunks.length > 1 && (
+                          <span className="text-tw-wave/50 font-normal">×{src.chunks.length}</span>
+                        )}
                       </span>
                     ))}
                   </div>

@@ -12,6 +12,9 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
-    allowedHosts: ['127.0.0.1', 'localhost', '.ngrok-free.app'],
+    // Audience members join over LAN/ngrok using whatever hostname or IP
+    // the QR code encodes, so don't restrict which Host headers are
+    // accepted (this is a local demo app, not a public deployment).
+    allowedHosts: true,
   },
 })
