@@ -25,10 +25,17 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.0-flash"
 
-    ollama_base_url: str = "http://localhost:11434"
+    # Use 127.0.0.1 rather than "localhost": some environments resolve
+    # "localhost" to ::1 first, and httpx won't fall back to IPv4 the way
+    # curl's Happy Eyeballs does, causing spurious connection failures.
+    ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "gemma2:2b"
 
     default_provider: str = "ollama"
+
+    # Deterministic generation so the same question reliably reproduces the
+    # same (real, non-simulated) model behavior during live demos.
+    temperature: float = 0.0
 
     # Optional shared secret required (via X-Admin-Token header) to upload or
     # delete documents. Leave empty during local development; set it before

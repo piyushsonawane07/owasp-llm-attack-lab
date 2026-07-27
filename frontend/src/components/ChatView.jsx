@@ -1,6 +1,19 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Bot, Search, FileText, Loader2, Send, Sparkles } from 'lucide-react'
+import {
+  Bot,
+  AlertTriangle,
+  Search,
+  FileText,
+  Loader2,
+  Zap,
+  Send,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  ShieldCheck,
+} from 'lucide-react'
+import { PRESET_ATTACKS } from '../constants'
 
 const SAMPLE_QUESTIONS = [
   'What are the key points in the documents?',
@@ -15,13 +28,15 @@ export default function ChatView({
   setQuestion,
   onSend,
   documents,
-  models,
-  selectedModelKey,
-  setSelectedModelKey,
-  selected,
   error,
 }) {
   const chatEndRef = useRef(null)
+  const [showAllPresets, setShowAllPresets] = useState(false)
+  const mobilePresetLimit = 4
+  const visiblePresets = useMemo(
+    () => (showAllPresets ? PRESET_ATTACKS : PRESET_ATTACKS.slice(0, mobilePresetLimit)),
+    [showAllPresets]
+  )
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -29,22 +44,6 @@ export default function ChatView({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-tw-mist">
-      {/* <label className="md:hidden flex items-center gap-2 bg-tw-talc border-b border-tw-wave/15 px-3 py-2">
-        <span className="text-[11px] font-sans font-semibold text-tw-wave/80 shrink-0">Model</span>
-        <select
-          value={selectedModelKey}
-          onChange={(e) => setSelectedModelKey(e.target.value)}
-          className="flex-1 bg-tw-mist rounded-md text-xs font-sans font-semibold text-tw-wave px-2 py-1.5 focus:outline-none"
-        >
-          {models.map((m) => (
-            <option key={`${m.provider}:${m.id}`} value={`${m.provider}:${m.id}`}>
-              {m.label}
-              {!m.available ? ' — unavailable' : ''}
-            </option>
-          ))}
-        </select>
-      </label> */}
-
       <div className="flex-1 overflow-y-auto p-3 md:p-5 space-y-4">
         {messages.length === 0 && (
           <div className="max-w-2xl mx-auto text-center py-8 md:py-14">
@@ -55,8 +54,8 @@ export default function ChatView({
               Ask your documents
             </h2>
             <p className="text-sm text-tw-onyx/70 font-sans mb-5">
-              Pick Gemini or Ollama, then ask a question about the pre-loaded knowledge base.
-              Retrieved chunks are shown under each answer so the audience can see RAG at work.
+              Ask standard questions, or run an OWASP attack demo below, to see how this RAG
+              pipeline really behaves against the knowledge base.
             </p>
             <div className="grid sm:grid-cols-3 gap-2 text-left">
               {SAMPLE_QUESTIONS.map((q) => (
@@ -80,21 +79,47 @@ export default function ChatView({
               className={`max-w-[90%] md:max-w-2xl rounded-xl p-3.5 md:p-4 text-sm font-sans shadow-sm ${
                 msg.role === 'user'
                   ? 'bg-tw-wave text-tw-talc rounded-br-none'
+                  : msg.attackDetected
+                  ? 'bg-tw-talc border-2 border-tw-pink text-tw-onyx rounded-bl-none'
                   : msg.error
                   ? 'bg-tw-talc border-2 border-tw-pink text-tw-onyx rounded-bl-none'
                   : 'bg-tw-talc border border-tw-wave/20 text-tw-onyx rounded-bl-none'
               }`}
             >
+              {msg.role === 'user' && msg.owaspId && (
+                <span className="inline-block mb-1.5 text-[10px] font-bold px-2 py-0.5 rounded bg-tw-talc/15 text-tw-talc border border-tw-talc/30">
+                  {msg.owaspId} attack
+                </span>
+              )}
+
               {msg.role === 'assistant' && (
                 <div className="mb-2 pb-2 border-b border-tw-wave/10 flex flex-wrap items-center justify-between text-xs text-tw-wave/70 gap-2 font-sans">
                   <span className="font-semibold text-tw-wave flex items-center gap-1.5">
                     <Bot className="w-4 h-4 text-tw-sapphire" /> Assistant
                   </span>
-                  {/* {msg.provider && (
-                    <span className="bg-tw-mist text-tw-wave font-semibold px-2 py-0.5 rounded border border-tw-wave/15 text-[10px] md:text-xs">
-                      {msg.provider} · {msg.model}
-                    </span>
-                  )} */}
+                  <div className="flex items-center gap-1.5">
+                    {msg.owaspId && (
+                      <span className="bg-tw-mist text-tw-wave font-bold px-2 py-0.5 rounded border border-tw-wave/25 text-[10px] md:text-xs">
+                        {msg.owaspId}
+                      </span>
+                    )}
+                    {msg.attackDetected && (
+                      <span className="bg-tw-pink/10 text-tw-pink font-bold px-2 py-0.5 rounded border border-tw-pink/40 flex items-center gap-1 text-[10px] md:text-xs">
+                        <AlertTriangle className="w-3.5 h-3.5" /> VULNERABILITY EXPLOITED
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {msg.guardrailBlocked && (
+                <div className="mb-2 text-[11px] rounded-md px-2 py-1 bg-tw-jade/10 border border-tw-jade/40 text-[#2f5b3a] flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Guardrail Alert: request blocked before it reached the model.
+                </div>
+              )}
+              {msg.redacted && (
+                <div className="mb-2 text-[11px] rounded-md px-2 py-1 bg-tw-yellow/10 border border-tw-yellow/40 text-[#8a5b06]">
+                  Output guardrail redacted sensitive content detected in the real response below.
                 </div>
               )}
 
@@ -108,30 +133,24 @@ export default function ChatView({
                 )}
               </div>
 
-              {/* {msg.sources && msg.sources.length > 0 && (
-                <details className="mt-3 pt-2 border-t border-tw-wave/10 text-xs font-sans">
-                  <summary className="text-tw-wave font-semibold flex items-center gap-1 mb-1 cursor-pointer select-none">
-                    <Search className="w-3.5 h-3.5 text-tw-sapphire" /> Sources ({msg.sources.length})
-                  </summary>
-                  <ol className="mt-2 space-y-2">
+              {msg.sources && msg.sources.length > 0 && (
+                <div className="mt-3 pt-2 border-t border-tw-wave/10 text-xs font-sans">
+                  <span className="text-tw-wave font-semibold flex items-center gap-1 mb-1.5">
+                    <Search className="w-3.5 h-3.5 text-tw-sapphire" /> Retrieved Context:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
                     {msg.sources.map((src, i) => (
-                      <li
+                      <span
                         key={`${src.document_id}-${src.chunk_index}-${i}`}
-                        className="bg-tw-mist border border-tw-wave/15 rounded-lg p-2.5"
+                        title={src.text}
+                        className="bg-tw-mist border border-tw-wave/20 text-tw-wave px-2 py-0.5 rounded text-[11px] flex items-center gap-1 truncate max-w-full font-medium"
                       >
-                        <span className="flex items-center gap-1.5 font-semibold text-tw-wave text-[11px] mb-1">
-                          <FileText className="w-3 h-3 text-tw-sapphire" />
-                          {src.filename}
-                          <em className="ml-auto font-normal text-tw-wave/60 not-italic">
-                            score {src.score.toFixed(3)}
-                          </em>
-                        </span>
-                        <p className="text-tw-onyx/75 leading-relaxed">{src.text}</p>
-                      </li>
+                        <FileText className="w-3 h-3 text-tw-sapphire shrink-0" /> {src.filename}
+                      </span>
                     ))}
-                  </ol>
-                </details>
-              )} */}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -162,11 +181,44 @@ export default function ChatView({
         </div>
       )}
 
-      {selected && !selected.available && selected.note && (
-        <div className="mx-3 mb-2 px-3 py-2 rounded-lg bg-tw-yellow/10 border border-tw-yellow/40 text-[#8a5b06] text-xs font-sans font-semibold">
-          {selected.note}
+      <div className="p-3 bg-tw-talc border-t border-tw-wave/15">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <p className="text-xs font-sans font-semibold text-tw-wave flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-tw-yellow" /> Quick OWASP Attack Demos:
+          </p>
+          {PRESET_ATTACKS.length > mobilePresetLimit && (
+            <button
+              type="button"
+              onClick={() => setShowAllPresets((prev) => !prev)}
+              className="md:hidden inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border border-tw-wave/20 text-tw-wave bg-tw-mist"
+            >
+              {showAllPresets ? 'Less' : 'More'}
+              {showAllPresets ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+          )}
         </div>
-      )}
+        <div className="grid grid-cols-1 md:flex md:overflow-x-auto gap-2 pb-1 md:pb-2 md:-mb-2 md:snap-x md:hide-scrollbar">
+          {visiblePresets.map((attack, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onSend(attack.prompt, { owaspId: attack.owaspId })}
+              disabled={querying}
+              className="shrink-0 md:w-64 md:flex-1 text-left p-2.5 bg-tw-mist hover:bg-tw-wave/10 border border-tw-wave/20 hover:border-tw-wave rounded-lg text-xs font-sans transition group md:snap-start disabled:opacity-50"
+            >
+              <span className="font-semibold text-tw-wave group-hover:text-tw-pink block truncate">
+                <span className="inline-flex mr-1.5 px-1.5 py-0.5 rounded border border-tw-sapphire/40 bg-tw-talc text-[10px] text-tw-wave align-middle">
+                  {attack.owaspId}
+                </span>
+                {attack.name}
+              </span>
+              <span className="text-[10px] text-tw-onyx/70 block truncate mt-0.5 whitespace-normal line-clamp-2">
+                {attack.desc}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="p-3 bg-tw-talc border-t border-tw-wave/15 pb-safe mb-4">
         <form
@@ -181,7 +233,9 @@ export default function ChatView({
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder={
-              documents.length ? 'Ask a question about your documents…' : 'No documents indexed yet…'
+              documents.length
+                ? 'Type a message or run a prompt injection attack…'
+                : 'No documents indexed yet…'
             }
             disabled={querying}
             className="flex-1 bg-tw-talc border border-tw-wave/30 rounded-lg px-4 py-2.5 text-sm font-sans text-tw-onyx placeholder-tw-wave/50 focus:outline-none focus:border-tw-pink focus:ring-1 focus:ring-tw-pink transition disabled:opacity-60"
@@ -191,7 +245,7 @@ export default function ChatView({
             disabled={querying || !question.trim()}
             className="bg-tw-pink hover:bg-tw-pink/90 disabled:opacity-50 text-tw-talc font-sans font-semibold px-4 md:px-5 py-2.5 rounded-lg text-sm transition flex items-center gap-1.5 shadow-md shrink-0"
           >
-            <span className="hidden sm:inline">Ask</span>
+            <span className="hidden sm:inline">Send</span>
             <Send className="w-4 h-4" />
           </button>
         </form>

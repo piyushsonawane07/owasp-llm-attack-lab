@@ -62,8 +62,14 @@ async def _generate_gemini(prompt: str, model: str) -> str:
         )
 
     def _call() -> str:
+        from google.genai import types
+
         client = genai.Client(api_key=settings.gemini_api_key)
-        response = client.models.generate_content(model=model, contents=prompt)
+        response = client.models.generate_content(
+            model=model,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=settings.temperature),
+        )
         text = getattr(response, "text", None)
         if not text:
             raise RuntimeError("Gemini returned an empty response.")
@@ -80,7 +86,12 @@ async def _generate_ollama(prompt: str, model: str) -> str:
         async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(
                 url,
-                json={"model": model, "prompt": prompt, "stream": False},
+                json={
+                    "model": model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {"temperature": settings.temperature},
+                },
             )
             response.raise_for_status()
             data = response.json()
