@@ -16,9 +16,9 @@ import {
 import { PRESET_ATTACKS } from '../constants'
 
 const SAMPLE_QUESTIONS = [
-  'What are the key points in the documents?',
-  'Summarize the main findings.',
-  'What risks or recommendations are mentioned?',
+  // 'What are the key points in the documents?',
+  // 'Summarize the main findings.',
+  // 'What risks or recommendations are mentioned?',
 ]
 
 export default function ChatView({

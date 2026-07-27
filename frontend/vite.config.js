@@ -12,5 +12,6 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+    allowedHosts: ['127.0.0.1', 'localhost', '.ngrok-free.app'],
   },
 })
