@@ -251,7 +251,8 @@ function App() {
         }
       }
 
-      const attackDetected = risk ? detectAttackSuccess(risk, result.answer, result.sources) && !redacted : false
+      const attackDetected = risk ? detectAttackSuccess(risk, result.answer) && !redacted : false
+      const attackResisted = Boolean(risk) && !attackDetected && !redacted
 
       setMessages((prev) => [
         ...prev,
@@ -263,6 +264,15 @@ function App() {
           provider: result.provider,
           owaspId,
           attackDetected,
+          attackResisted,
+          owaspMeta: risk
+            ? {
+                id: risk.id,
+                title: risk.title,
+                impact: risk.impact,
+                mitigation: risk.mitigation,
+              }
+            : null,
           redacted,
         },
       ])

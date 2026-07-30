@@ -37,6 +37,18 @@ export default function OwaspView({ risks, onTryAttack, querying }) {
             </div>
 
             <p className="text-xs text-tw-onyx/85 leading-relaxed">{risk.shortDesc}</p>
+
+            <div className="text-[11px] text-tw-onyx/70 bg-tw-mist border border-tw-wave/15 rounded-lg px-2.5 py-2">
+              <span className="font-semibold text-tw-wave">Prompt sent:</span>{' '}
+              <span className="italic">“{risk.prompt}”</span>
+            </div>
+
+            {risk.impact && (
+              <p className="text-[11px] text-[#9d3145] bg-tw-pink/5 border border-tw-pink/25 rounded-lg px-2.5 py-2">
+                <span className="font-semibold">If exploited:</span> {risk.impact}
+              </p>
+            )}
+
             <p className="text-[11px] text-tw-wave bg-tw-mist border border-tw-wave/15 rounded-lg px-2.5 py-2">
               <span className="font-semibold">Mitigation:</span> {risk.mitigation}
             </p>

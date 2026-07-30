@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronUp,
   ShieldCheck,
+  ShieldAlert,
 } from 'lucide-react'
 import { PRESET_ATTACKS } from '../constants'
 
@@ -30,10 +31,13 @@ function uniqueSources(sources) {
   return Array.from(byFile.values())
 }
 
+// Verified-clean control questions: each answers correctly from a single
+// document with no planted vulnerability triggered, so the audience sees
+// the RAG pipeline working normally before the OWASP attacks below.
 const SAMPLE_QUESTIONS = [
-  // 'What are the key points in the documents?',
-  // 'Summarize the main findings.',
-  // 'What risks or recommendations are mentioned?',
+  'How many days of casual leave and sick leave do employees get per year?',
+  'What mandatory trainings do new hires need to complete?',
+  'What is CloudSync used for?',
 ]
 
 export default function ChatView({
@@ -68,9 +72,27 @@ export default function ChatView({
             <h2 className="font-serif font-bold text-xl md:text-2xl text-tw-wave mb-2">
               Ask your documents
             </h2>
-            <p className="text-sm text-tw-onyx/70 font-sans mb-5">
-              Ask standard questions, or run an OWASP attack demo below, to see how this RAG
-              pipeline really behaves against the knowledge base.
+            <p className="text-sm text-tw-onyx/70 font-sans mb-4">
+              This is a real RAG pipeline (FastAPI + Ollama, temperature 0) answering from the
+              documents in <code className="bg-tw-talc border border-tw-wave/15 rounded px-1 py-0.5 text-xs">sample-docs/</code>.
+              Nothing here is scripted.
+            </p>
+            <div className="max-w-xl mx-auto mb-6 grid grid-cols-3 gap-2 text-left text-[11px] font-sans">
+              <div className="p-2.5 rounded-lg bg-tw-talc border border-tw-wave/15">
+                <span className="font-bold text-tw-wave">1. Ask normally</span>
+                <p className="text-tw-onyx/60 mt-0.5">Try a clean question to see the pipeline behave correctly.</p>
+              </div>
+              <div className="p-2.5 rounded-lg bg-tw-talc border border-tw-wave/15">
+                <span className="font-bold text-tw-wave">2. Run an attack</span>
+                <p className="text-tw-onyx/60 mt-0.5">Fire an OWASP demo below or from the OWASP tab.</p>
+              </div>
+              <div className="p-2.5 rounded-lg bg-tw-talc border border-tw-wave/15">
+                <span className="font-bold text-tw-wave">3. Read the verdict</span>
+                <p className="text-tw-onyx/60 mt-0.5">Each attack reply shows if it was exploited or resisted, and why.</p>
+              </div>
+            </div>
+            <p className="text-xs font-semibold text-tw-wave/80 mb-2 text-left max-w-xl mx-auto">
+              Start with a clean question:
             </p>
             <div className="grid sm:grid-cols-3 gap-2 text-left">
               {SAMPLE_QUESTIONS.map((q) => (
@@ -96,6 +118,8 @@ export default function ChatView({
                   ? 'bg-tw-wave text-tw-talc rounded-br-none'
                   : msg.attackDetected
                   ? 'bg-tw-talc border-2 border-tw-pink text-tw-onyx rounded-bl-none'
+                  : msg.attackResisted
+                  ? 'bg-tw-talc border-2 border-tw-jade text-tw-onyx rounded-bl-none'
                   : msg.error
                   ? 'bg-tw-talc border-2 border-tw-pink text-tw-onyx rounded-bl-none'
                   : 'bg-tw-talc border border-tw-wave/20 text-tw-onyx rounded-bl-none'
@@ -123,6 +147,11 @@ export default function ChatView({
                         <AlertTriangle className="w-3.5 h-3.5" /> VULNERABILITY EXPLOITED
                       </span>
                     )}
+                    {msg.attackResisted && (
+                      <span className="bg-tw-jade/10 text-[#2f5b3a] font-bold px-2 py-0.5 rounded border border-tw-jade/40 flex items-center gap-1 text-[10px] md:text-xs">
+                        <ShieldCheck className="w-3.5 h-3.5" /> ATTACK RESISTED
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
@@ -147,6 +176,44 @@ export default function ChatView({
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                 )}
               </div>
+
+              {msg.owaspMeta && (msg.attackDetected || msg.attackResisted) && (
+                <div
+                  className={`mt-3 rounded-lg p-2.5 text-[11px] leading-relaxed border ${
+                    msg.attackDetected
+                      ? 'bg-tw-pink/5 border-tw-pink/30'
+                      : 'bg-tw-jade/5 border-tw-jade/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-tw-wave mb-1">
+                    {msg.attackDetected ? (
+                      <ShieldAlert className="w-3.5 h-3.5 text-tw-pink" />
+                    ) : (
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#2f5b3a]" />
+                    )}
+                    {msg.owaspMeta.id} · {msg.owaspMeta.title} —{' '}
+                    {msg.attackDetected ? 'Exploited' : 'Resisted this time'}
+                  </div>
+                  <p className="text-tw-onyx/75">
+                    <span className="font-semibold text-tw-wave">
+                      {msg.attackDetected ? 'What happened: ' : 'Why it matters: '}
+                    </span>
+                    {msg.owaspMeta.impact}
+                  </p>
+                  {msg.attackDetected && (
+                    <p className="text-tw-onyx/75 mt-1">
+                      <span className="font-semibold text-tw-wave">Mitigation: </span>
+                      {msg.owaspMeta.mitigation}
+                    </p>
+                  )}
+                  {msg.attackResisted && (
+                    <p className="text-tw-onyx/60 mt-1 italic">
+                      The planted payload is still in the source below — exploitation is
+                      retrieval- and phrasing-dependent, so a different wording may still trigger it.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-3 pt-2 border-t border-tw-wave/10 text-xs font-sans">

@@ -24,3 +24,4 @@ frontend/.env.local
 
 # Model caches (optional local)
 .cache/
+.vercel

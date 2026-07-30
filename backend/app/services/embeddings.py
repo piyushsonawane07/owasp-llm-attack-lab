@@ -1,9 +1,18 @@
+import os
 from functools import lru_cache
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from app.config import get_settings
+
+# The embedding model is downloaded once and cached locally; there is never
+# a need to re-check Hugging Face Hub for updates on every startup. This
+# also avoids spurious SSL/network failures (e.g. behind a corporate proxy
+# or VPN) since we never make an outbound request once the model is cached.
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
+os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
+from sentence_transformers import SentenceTransformer  # noqa: E402
 
 
 @lru_cache
