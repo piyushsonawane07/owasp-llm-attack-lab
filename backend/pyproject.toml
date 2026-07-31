@@ -17,6 +17,7 @@ dependencies = [
     "google-genai>=1.0.0",
     "python-dotenv>=1.0.0",
     "chromadb>=1.5.9",
+    "nemoguardrails>=0.23.0",
 ]
 
 [project.scripts]

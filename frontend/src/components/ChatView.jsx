@@ -156,16 +156,16 @@ export default function ChatView({
                 </div>
               )}
 
-              {msg.guardrailBlocked && (
+              {/* {msg.guardrailBlocked === 'input' && (
                 <div className="mb-2 text-[11px] rounded-md px-2 py-1 bg-tw-jade/10 border border-tw-jade/40 text-[#2f5b3a] flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5" /> Guardrail Alert: request blocked before it reached the model.
                 </div>
               )}
-              {msg.redacted && (
-                <div className="mb-2 text-[11px] rounded-md px-2 py-1 bg-tw-yellow/10 border border-tw-yellow/40 text-[#8a5b06]">
-                  Output guardrail redacted sensitive content detected in the real response below.
+              {msg.guardrailBlocked === 'output' && (
+                <div className="mb-2 text-[11px] rounded-md px-2 py-1 bg-tw-jade/10 border border-tw-jade/40 text-[#2f5b3a] flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Guardrail Alert: response blocked after generation.
                 </div>
-              )}
+              )} */}
 
               <div className="leading-relaxed break-words">
                 {msg.role === 'assistant' ? (
@@ -224,7 +224,7 @@ export default function ChatView({
                     {uniqueSources(msg.sources).map((src) => (
                       <span
                         key={src.document_id || src.filename}
-                        title={src.chunks.map((c) => c.text).join('\n\n')}
+                        title={msg.guardrailBlocked ? undefined : src.chunks.map((c) => c.text).join('\n\n')}
                         className="bg-tw-mist border border-tw-wave/20 text-tw-wave px-2 py-0.5 rounded text-[11px] flex items-center gap-1 truncate max-w-full font-medium"
                       >
                         <FileText className="w-3 h-3 text-tw-sapphire shrink-0" /> {src.filename}

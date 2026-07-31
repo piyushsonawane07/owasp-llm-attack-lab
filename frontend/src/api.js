@@ -58,10 +58,10 @@ export function deleteDocument(id, deleteFile = false) {
   return request(`/api/documents/${id}?delete_file=${deleteFile}`, { method: 'DELETE' })
 }
 
-export function queryRag({ question, provider, model }) {
+export function queryRag({ question, provider, model, guardrails_enabled }) {
   return request('/api/query', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question, provider, model }),
+    body: JSON.stringify({ question, provider, model, guardrails_enabled }),
   })
 }

@@ -30,6 +30,7 @@ class QueryRequest(BaseModel):
     provider: Literal["gemini", "ollama"] = "gemini"
     model: str | None = None
     top_k: int | None = Field(default=None, ge=1, le=10)
+    guardrails_enabled: bool = False
 
 
 class QueryResponse(BaseModel):
@@ -37,6 +38,7 @@ class QueryResponse(BaseModel):
     sources: list[SourceChunk]
     provider: str
     model: str
+    guardrail_blocked: Literal["input", "output"] | None = None
 
 
 class LibraryDocInfo(BaseModel):

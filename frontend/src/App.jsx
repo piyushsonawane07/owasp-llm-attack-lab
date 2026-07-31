@@ -16,27 +16,6 @@ import {
   uploadDocument,
 } from './api'
 
-// Client-side guardrail: when enabled, obviously malicious injection/jailbreak
-// patterns in the user's own text are blocked before ever reaching the model,
-// and known-sensitive substrings are redacted from real responses. This is a
-// genuine pre/post-processing policy layer, not a simulation of the LLM.
-const GUARDRAIL_BLOCK_PATTERNS = [
-  'ignore previous instructions',
-  'ignore all previous instructions',
-  'system prompt',
-  'jailbreak',
-  'do anything now',
-  'master admin',
-  'reveal your instructions',
-  'without redaction',
-]
-
-const REDACTION_MARKERS = [
-  'str0ngp@ss!2026',
-  'sk-test-internal-4f9a1c7e2b6d4a3f8891',
-  '000123456789',
-]
-
 function App() {
   const [tab, setTab] = useState('chat')
 
@@ -211,24 +190,6 @@ function App() {
     setError('')
     setMessages((prev) => [...prev, { role: 'user', content: text, owaspId }])
 
-    if (guardrailsEnabled) {
-      const lower = text.toLowerCase()
-      const flagged = GUARDRAIL_BLOCK_PATTERNS.some((pattern) => lower.includes(pattern))
-      if (flagged) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content:
-              'This request was blocked before it reached the model because it matched a known prompt-injection pattern.',
-            owaspId,
-            guardrailBlocked: true,
-          },
-        ])
-        return
-      }
-    }
-
     setQuerying(true)
 
     try {
@@ -236,29 +197,18 @@ function App() {
         question: text,
         provider: selected.provider,
         model: selected.id,
+        guardrails_enabled: guardrailsEnabled,
       })
 
-      let answer = result.answer
-      let redacted = false
-      if (guardrailsEnabled) {
-        const lowerAnswer = answer.toLowerCase()
-        if (REDACTION_MARKERS.some((marker) => lowerAnswer.includes(marker))) {
-          for (const marker of REDACTION_MARKERS) {
-            const re = new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
-            answer = answer.replace(re, '[REDACTED BY OUTPUT GUARDRAIL]')
-          }
-          redacted = true
-        }
-      }
-
-      const attackDetected = risk ? detectAttackSuccess(risk, result.answer) && !redacted : false
-      const attackResisted = Boolean(risk) && !attackDetected && !redacted
+      const guardrailBlocked = Boolean(result.guardrail_blocked)
+      const attackDetected = risk ? detectAttackSuccess(risk, result.answer) && !guardrailBlocked : false
+      const attackResisted = Boolean(risk) && !attackDetected && !guardrailBlocked
 
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: answer,
+          content: result.answer,
           sources: result.sources,
           model: result.model,
           provider: result.provider,
@@ -273,7 +223,7 @@ function App() {
                 mitigation: risk.mitigation,
               }
             : null,
-          redacted,
+          guardrailBlocked: result.guardrail_blocked || null,
         },
       ])
     } catch (err) {

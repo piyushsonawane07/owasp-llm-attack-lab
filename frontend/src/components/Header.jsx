@@ -28,9 +28,10 @@ export default function Header({ tab, setTab, guardrailsEnabled, setGuardrailsEn
         </div>
 
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
-          {/* <button
+          <button
             type="button"
             onClick={() => setGuardrailsEnabled(!guardrailsEnabled)}
+            title="Toggle NeMo Guardrails"
             className={`px-3 py-1.5 rounded-lg text-xs font-sans font-semibold flex items-center gap-1.5 transition border ${
               guardrailsEnabled
                 ? 'bg-tw-jade text-tw-talc border-tw-jade'
@@ -40,7 +41,7 @@ export default function Header({ tab, setTab, guardrailsEnabled, setGuardrailsEn
             {guardrailsEnabled ? <ShieldCheck className="w-4 h-4" /> : <ShieldOff className="w-4 h-4" />}
             <span className="hidden sm:inline">Guardrails: {guardrailsEnabled ? 'ACTIVE' : 'OFF'}</span>
             <span className="sm:hidden">{guardrailsEnabled ? 'ON' : 'OFF'}</span>
-          </button> */}
+          </button>
 
           <button
             type="button"

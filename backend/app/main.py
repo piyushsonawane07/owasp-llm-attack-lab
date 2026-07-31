@@ -26,6 +26,7 @@ from app.services.library import (
     read_library_file_text,
     resolve_library_file,
 )
+from app.services.guardrails import GuardrailBlocked, check_input, check_output
 from app.services.llm import generate_answer, list_available_models
 from app.services.parsers import extract_text, is_supported
 from app.services.vectorstore import store
@@ -278,6 +279,18 @@ async def query(body: QueryRequest) -> QueryResponse:
             detail="No documents uploaded yet. Upload a document before querying.",
         )
 
+    if body.guardrails_enabled:
+        try:
+            await check_input(body.question)
+        except GuardrailBlocked as exc:
+            return QueryResponse(
+                answer=exc.message,
+                sources=[],
+                provider=body.provider,
+                model=body.model or "",
+                guardrail_blocked="input",
+            )
+
     top_k = body.top_k or settings.top_k
     sources = store.search(
         body.question,
@@ -298,6 +311,17 @@ async def query(body: QueryRequest) -> QueryResponse:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Generation failed: {exc}") from exc
+
+    if body.guardrails_enabled:
+        block_message = await check_output(body.question, answer)
+        if block_message:
+            return QueryResponse(
+                answer=block_message,
+                sources=sources,
+                provider=body.provider,
+                model=model_name,
+                guardrail_blocked="output",
+            )
 
     return QueryResponse(
         answer=answer,
