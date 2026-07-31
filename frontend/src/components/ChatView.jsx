@@ -117,11 +117,11 @@ export default function ChatView({
                 msg.role === 'user'
                   ? 'bg-tw-wave text-tw-talc rounded-br-none'
                   : msg.attackDetected
-                  ? 'bg-tw-talc border-2 border-tw-pink text-tw-onyx rounded-bl-none'
+                  ? 'bg-tw-talc text-tw-onyx rounded-bl-none'
                   : msg.attackResisted
                   ? 'bg-tw-talc border-2 border-tw-jade text-tw-onyx rounded-bl-none'
                   : msg.error
-                  ? 'bg-tw-talc border-2 border-tw-pink text-tw-onyx rounded-bl-none'
+                  ? 'bg-tw-talc text-tw-onyx rounded-bl-none'
                   : 'bg-tw-talc border border-tw-wave/20 text-tw-onyx rounded-bl-none'
               }`}
             >
