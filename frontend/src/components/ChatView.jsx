@@ -73,7 +73,7 @@ export default function ChatView({
               Ask your documents
             </h2>
             <p className="text-sm text-tw-onyx/70 font-sans mb-4">
-              This is a real RAG pipeline (FastAPI + Ollama, temperature 0) answering from the
+              This is a real RAG pipeline (FastAPI + Ollama) answering from the
               documents in <code className="bg-tw-talc border border-tw-wave/15 rounded px-1 py-0.5 text-xs">sample-docs/</code>.
               Nothing here is scripted.
             </p>
@@ -137,12 +137,12 @@ export default function ChatView({
                     <Bot className="w-4 h-4 text-tw-sapphire" /> Assistant
                   </span>
                   <div className="flex items-center gap-1.5">
-                    {msg.owaspId && (
+                    {/* {msg.owaspId && (
                       <span className="bg-tw-mist text-tw-wave font-bold px-2 py-0.5 rounded border border-tw-wave/25 text-[10px] md:text-xs">
                         {msg.owaspId}
                       </span>
-                    )}
-                    {msg.attackDetected && (
+                    )} */}
+                    {/* {msg.attackDetected && (
                       <span className="bg-tw-pink/10 text-tw-pink font-bold px-2 py-0.5 rounded border border-tw-pink/40 flex items-center gap-1 text-[10px] md:text-xs">
                         <AlertTriangle className="w-3.5 h-3.5" /> VULNERABILITY EXPLOITED
                       </span>
@@ -151,7 +151,7 @@ export default function ChatView({
                       <span className="bg-tw-jade/10 text-[#2f5b3a] font-bold px-2 py-0.5 rounded border border-tw-jade/40 flex items-center gap-1 text-[10px] md:text-xs">
                         <ShieldCheck className="w-3.5 h-3.5" /> ATTACK RESISTED
                       </span>
-                    )}
+                    )} */}
                   </div>
                 </div>
               )}
@@ -177,15 +177,15 @@ export default function ChatView({
                 )}
               </div>
 
-              {msg.owaspMeta && (msg.attackDetected || msg.attackResisted) && (
+              {/* {msg.owaspMeta && (msg.attackDetected || msg.attackResisted) && (
                 <div
                   className={`mt-3 rounded-lg p-2.5 text-[11px] leading-relaxed border ${
                     msg.attackDetected
                       ? 'bg-tw-pink/5 border-tw-pink/30'
                       : 'bg-tw-jade/5 border-tw-jade/30'
                   }`}
-                >
-                  <div className="flex items-center gap-1.5 font-bold text-tw-wave mb-1">
+                > */}
+                  {/* <div className="flex items-center gap-1.5 font-bold text-tw-wave mb-1">
                     {msg.attackDetected ? (
                       <ShieldAlert className="w-3.5 h-3.5 text-tw-pink" />
                     ) : (
@@ -193,27 +193,27 @@ export default function ChatView({
                     )}
                     {msg.owaspMeta.id} · {msg.owaspMeta.title} —{' '}
                     {msg.attackDetected ? 'Exploited' : 'Resisted this time'}
-                  </div>
-                  <p className="text-tw-onyx/75">
+                  </div> */}
+                  {/* <p className="text-tw-onyx/75">
                     <span className="font-semibold text-tw-wave">
                       {msg.attackDetected ? 'What happened: ' : 'Why it matters: '}
                     </span>
                     {msg.owaspMeta.impact}
-                  </p>
-                  {msg.attackDetected && (
+                  </p> */}
+                  {/* {msg.attackDetected && (
                     <p className="text-tw-onyx/75 mt-1">
                       <span className="font-semibold text-tw-wave">Mitigation: </span>
                       {msg.owaspMeta.mitigation}
                     </p>
-                  )}
-                  {msg.attackResisted && (
+                  )} */}
+                  {/* {msg.attackResisted && (
                     <p className="text-tw-onyx/60 mt-1 italic">
                       The planted payload is still in the source below — exploitation is
                       retrieval- and phrasing-dependent, so a different wording may still trigger it.
                     </p>
-                  )}
-                </div>
-              )}
+                  )} */}
+                {/* </div>
+              )} */}
 
               {msg.sources && msg.sources.length > 0 && (
                 <div className="mt-3 pt-2 border-t border-tw-wave/10 text-xs font-sans">

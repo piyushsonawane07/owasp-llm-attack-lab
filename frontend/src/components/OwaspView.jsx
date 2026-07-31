@@ -38,29 +38,23 @@ export default function OwaspView({ risks, onTryAttack, querying }) {
 
             <p className="text-xs text-tw-onyx/85 leading-relaxed">{risk.shortDesc}</p>
 
-            <div className="text-[11px] text-tw-onyx/70 bg-tw-mist border border-tw-wave/15 rounded-lg px-2.5 py-2">
+            {/* <div className="text-[11px] text-tw-onyx/70 bg-tw-mist border border-tw-wave/15 rounded-lg px-2.5 py-2">
               <span className="font-semibold text-tw-wave">Prompt sent:</span>{' '}
               <span className="italic">“{risk.prompt}”</span>
-            </div>
+            </div> */}
 
-            {risk.impact && (
-              <p className="text-[11px] text-[#9d3145] bg-tw-pink/5 border border-tw-pink/25 rounded-lg px-2.5 py-2">
-                <span className="font-semibold">If exploited:</span> {risk.impact}
-              </p>
-            )}
-
-            <p className="text-[11px] text-tw-wave bg-tw-mist border border-tw-wave/15 rounded-lg px-2.5 py-2">
+            {/* <p className="text-[11px] text-tw-wave bg-tw-mist border border-tw-wave/15 rounded-lg px-2.5 py-2">
               <span className="font-semibold">Mitigation:</span> {risk.mitigation}
-            </p>
+            </p> */}
 
-            <div className="text-[11px] text-tw-wave/80 flex items-center gap-1.5">
+            {/* <div className="text-[11px] text-tw-wave/80 flex items-center gap-1.5">
               <FileText className="w-3.5 h-3.5 text-tw-sapphire shrink-0" />
               Source: {risk.sourceDoc}
-            </div>
-            <div className="text-[11px] text-tw-wave/80 flex items-center gap-1.5">
+            </div> */}
+            {/* <div className="text-[11px] text-tw-wave/80 flex items-center gap-1.5">
               <ArrowRight className="w-3.5 h-3.5 text-tw-sapphire shrink-0" />
               Runs live against Ollama (temperature 0) — real retrieval, real generation.
-            </div>
+            </div> */}
           </div>
         ))}
       </div>
