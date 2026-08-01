@@ -13,6 +13,8 @@ import {
   ChevronUp,
   ShieldCheck,
   ShieldAlert,
+  CheckCircle2,
+  MessageCircleQuestion,
 } from 'lucide-react'
 import { PRESET_ATTACKS } from '../constants'
 
@@ -38,6 +40,27 @@ const SAMPLE_QUESTIONS = [
   'How many days of casual leave and sick leave do employees get per year?',
   'What mandatory trainings do new hires need to complete?',
   'What is CloudSync used for?',
+]
+
+const INTRO_STEPS = [
+  {
+    icon: CheckCircle2,
+    iconClass: 'text-tw-sapphire bg-tw-sapphire/10',
+    title: '1. Ask normally',
+    desc: 'Try a clean question to see the pipeline behave correctly.',
+  },
+  {
+    icon: Zap,
+    iconClass: 'text-tw-pink bg-tw-pink/10',
+    title: '2. Run an attack',
+    desc: 'Fire an OWASP demo below or from the OWASP tab.',
+  },
+  {
+    icon: ShieldCheck,
+    iconClass: 'text-tw-jade bg-tw-jade/10',
+    title: '3. Read the verdict',
+    desc: 'Each attack reply shows if it was exploited or resisted, and why.',
+  },
 ]
 
 export default function ChatView({
@@ -66,44 +89,52 @@ export default function ChatView({
       <div className="flex-1 overflow-y-auto p-3 md:p-5 space-y-4">
         {messages.length === 0 && (
           <div className="max-w-2xl mx-auto text-center py-8 md:py-14">
-            <div className="inline-flex p-3 rounded-2xl bg-tw-wave/5 border border-tw-wave/10 text-tw-pink mb-4">
+            <div className="inline-flex p-3.5 rounded-2xl bg-gradient-to-br from-tw-wave/10 to-tw-pink/10 border border-tw-wave/15 text-tw-pink mb-4 shadow-sm">
               <Sparkles className="w-6 h-6" />
             </div>
             <h2 className="font-serif font-bold text-xl md:text-2xl text-tw-wave mb-2">
               Ask your documents
             </h2>
-            <p className="text-sm text-tw-onyx/70 font-sans mb-4">
+            <p className="text-sm text-tw-onyx/70 font-sans mb-6 max-w-lg mx-auto leading-relaxed">
               This is a real RAG pipeline (FastAPI + Ollama) answering from the
               documents in <code className="bg-tw-talc border border-tw-wave/15 rounded px-1 py-0.5 text-xs">sample-docs/</code>.
               Nothing here is scripted.
             </p>
-            <div className="max-w-xl mx-auto mb-6 grid grid-cols-3 gap-2 text-left text-[11px] font-sans">
-              <div className="p-2.5 rounded-lg bg-tw-talc border border-tw-wave/15">
-                <span className="font-bold text-tw-wave">1. Ask normally</span>
-                <p className="text-tw-onyx/60 mt-0.5">Try a clean question to see the pipeline behave correctly.</p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-tw-talc border border-tw-wave/15">
-                <span className="font-bold text-tw-wave">2. Run an attack</span>
-                <p className="text-tw-onyx/60 mt-0.5">Fire an OWASP demo below or from the OWASP tab.</p>
-              </div>
-              <div className="p-2.5 rounded-lg bg-tw-talc border border-tw-wave/15">
-                <span className="font-bold text-tw-wave">3. Read the verdict</span>
-                <p className="text-tw-onyx/60 mt-0.5">Each attack reply shows if it was exploited or resisted, and why.</p>
-              </div>
+
+            <div className="max-w-xl mx-auto mb-7 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+              {INTRO_STEPS.map((step) => (
+                <div
+                  key={step.title}
+                  className="p-3.5 rounded-xl bg-tw-talc border border-tw-wave/15 hover:border-tw-wave/30 hover:shadow-md transition-all duration-200"
+                >
+                  <div className={`inline-flex items-center justify-center w-7 h-7 rounded-full mb-2 ${step.iconClass}`}>
+                    <step.icon className="w-3.5 h-3.5" />
+                  </div>
+                  <p className="text-xs font-bold text-tw-wave font-sans">{step.title}</p>
+                  <p className="text-[11px] text-tw-onyx/60 mt-1 leading-relaxed font-sans">{step.desc}</p>
+                </div>
+              ))}
             </div>
-            <p className="text-xs font-semibold text-tw-wave/80 mb-2 text-left max-w-xl mx-auto">
-              Start with a clean question:
-            </p>
-            <div className="grid sm:grid-cols-3 gap-2 text-left">
+
+            <div className="flex items-center gap-3 max-w-xl mx-auto mb-3">
+              <span className="h-px flex-1 bg-tw-wave/15" />
+              <p className="text-xs font-semibold text-tw-wave/80 font-sans whitespace-nowrap">
+                Start with a clean question
+              </p>
+              <span className="h-px flex-1 bg-tw-wave/15" />
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-2.5 text-left max-w-xl mx-auto">
               {SAMPLE_QUESTIONS.map((q) => (
                 <button
                   key={q}
                   type="button"
                   onClick={() => onSend(q)}
                   disabled={!documents.length || querying}
-                  className="p-2.5 bg-tw-talc hover:bg-tw-wave/5 border border-tw-wave/15 hover:border-tw-sapphire rounded-lg text-xs font-sans text-tw-wave transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="group p-3 bg-tw-talc hover:bg-tw-wave/5 border border-tw-wave/15 hover:border-tw-sapphire rounded-xl text-xs font-sans text-tw-wave transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
                 >
-                  {q}
+                  <MessageCircleQuestion className="w-3.5 h-3.5 text-tw-sapphire mb-1.5 mx-auto block group-hover:text-tw-pink transition-colors" />
+                  <span className="block leading-snug">{q}</span>
                 </button>
               ))}
             </div>
