@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import shutil
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -209,7 +210,10 @@ async def upload(file: UploadFile = File(...)) -> UploadResponse:
         with dest.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        text = extract_text(dest)
+        # Parsing, chunking, and embedding are all synchronous/CPU-bound;
+        # offload to a worker thread so an upload doesn't stall queries
+        # (or other uploads) running concurrently.
+        text = await asyncio.to_thread(extract_text, dest)
         chunks = chunk_text(text, settings.chunk_size, settings.chunk_overlap)
         if not chunks:
             dest.unlink(missing_ok=True)
@@ -220,9 +224,10 @@ async def upload(file: UploadFile = File(...)) -> UploadResponse:
                 (doc for doc in store.list_documents() if doc.filename == filename), None
             )
             if existing:
-                store.delete_document(existing.id)
+                await asyncio.to_thread(store.delete_document, existing.id)
 
-        document = store.add_document(
+        document = await asyncio.to_thread(
+            store.add_document,
             filename=filename,
             content_type=file.content_type or "application/octet-stream",
             size_bytes=dest.stat().st_size,
@@ -292,7 +297,11 @@ async def query(body: QueryRequest) -> QueryResponse:
             )
 
     top_k = body.top_k or settings.top_k
-    sources = store.search(
+    # store.search() is a synchronous, CPU-bound call (embedding + Chroma
+    # query). Run it in a worker thread so it doesn't block the event loop
+    # and freeze every other in-flight request while it runs.
+    sources = await asyncio.to_thread(
+        store.search,
         body.question,
         top_k=top_k,
         min_score=settings.min_relevance_score,
@@ -332,9 +341,15 @@ async def query(body: QueryRequest) -> QueryResponse:
 
 
 def main() -> None:
+    import os
+
     import uvicorn
 
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8088, reload=True)
+    # reload=True re-imports the app on every file change and adds a
+    # filesystem-watcher thread; useful in dev, pure overhead for a demo.
+    # Opt back into it with RELOAD=1 if you're actively editing code.
+    reload = os.getenv("RELOAD", "0") == "1"
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8088, reload=reload)
 
 
 if __name__ == "__main__":
