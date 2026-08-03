@@ -147,6 +147,8 @@ export default function ChatView({
               className={`max-w-[90%] md:max-w-2xl rounded-xl p-3.5 md:p-4 text-sm font-sans shadow-sm ${
                 msg.role === 'user'
                   ? 'bg-tw-wave text-tw-talc rounded-br-none'
+                  : msg.guardrailBlocked
+                  ? 'bg-tw-talc border-2 border-tw-pink text-tw-onyx rounded-bl-none'
                   : msg.attackDetected
                   ? 'bg-tw-talc text-tw-onyx rounded-bl-none'
                   : msg.attackResisted
