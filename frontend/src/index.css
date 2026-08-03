@@ -139,6 +139,31 @@ body,
   background: rgba(0, 61, 79, 0.08);
   padding: 0.12rem 0.35rem;
   border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+
+/* Fenced code blocks (```...```) can contain long, unbroken lines (e.g. a
+ * document's raw HTML/script payload). Without wrapping, <pre> forces the
+ * chat bubble wider than its container instead of staying inside it. */
+.markdown-body pre {
+  background: rgba(0, 61, 79, 0.06);
+  border: 1px solid rgba(0, 61, 79, 0.12);
+  border-radius: 8px;
+  padding: 0.7em 0.9em;
+  margin: 0.6em 0;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.85em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .markdown-body a {
