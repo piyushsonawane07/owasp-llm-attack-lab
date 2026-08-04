@@ -5,13 +5,13 @@ export default function OwaspView({ risks, onTryAttack, querying }) {
     <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-5 pb-safe font-sans bg-tw-mist">
       <div>
         <h2 className="text-xl md:text-2xl font-serif font-bold text-tw-wave mb-1">
-          OWASP Top 10 for LLMs (2025)
+          OWASP Top 10 for LLMs
         </h2>
-        <p className="text-xs md:text-sm text-tw-onyx/70">
+        {/* <p className="text-xs md:text-sm text-tw-onyx/70">
           Click any risk to run a real question — grounded in the documents already indexed from{' '}
           <code className="bg-tw-talc border border-tw-wave/15 rounded px-1.5 py-0.5">sample-docs/</code>{' '}
           — through the live RAG pipeline in Chat. Nothing here is scripted or simulated.
-        </p>
+        </p> */}
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">

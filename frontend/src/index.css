@@ -21,7 +21,7 @@ body,
   background: #edf1f3;
 }
 ::-webkit-scrollbar-thumb {
-  background: #003d4f;
+  background: rgba(0, 61, 79, 0.25);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -73,6 +73,28 @@ body,
   40% {
     transform: translateY(-3px);
     opacity: 1;
+  }
+}
+
+.msg-in {
+  animation: msgIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes msgIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msg-in,
+  .typing-dot,
+  .pulse-glow {
+    animation: none;
   }
 }
 

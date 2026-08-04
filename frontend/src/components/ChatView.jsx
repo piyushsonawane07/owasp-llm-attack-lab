@@ -55,12 +55,7 @@ const INTRO_STEPS = [
     title: '2. Run an attack',
     desc: 'Fire an OWASP demo below or from the OWASP tab.',
   },
-  {
-    icon: ShieldCheck,
-    iconClass: 'text-tw-jade bg-tw-jade/10',
-    title: '3. Read the verdict',
-    desc: 'Each attack reply shows if it was exploited or resisted, and why.',
-  },
+
 ]
 
 export default function ChatView({
@@ -95,17 +90,16 @@ export default function ChatView({
             <h2 className="font-serif font-bold text-xl md:text-2xl text-tw-wave mb-2">
               Ask your documents
             </h2>
-            <p className="text-sm text-tw-onyx/70 font-sans mb-6 max-w-lg mx-auto leading-relaxed">
-              This is a real RAG pipeline (FastAPI + Ollama) answering from the
-              documents in <code className="bg-tw-talc border border-tw-wave/15 rounded px-1 py-0.5 text-xs">sample-docs/</code>.
-              Nothing here is scripted.
-            </p>
+            {/* <p className="text-sm text-tw-onyx/70 font-sans mb-6 max-w-lg mx-auto leading-relaxed">
+              A RAG pipeline (FastAPI + Ollama) answering from the documents in{' '}
+              <code className="bg-tw-talc border border-tw-wave/15 rounded px-1 py-0.5 text-xs">sample-docs/</code>.
+            </p> */}
 
-            <div className="max-w-xl mx-auto mb-7 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+            <div className="max-w-xl mx-auto mb-7 flex flex-wrap justify-center gap-3 text-left">
               {INTRO_STEPS.map((step) => (
                 <div
                   key={step.title}
-                  className="p-3.5 rounded-xl bg-tw-talc border border-tw-wave/15 hover:border-tw-wave/30 hover:shadow-md transition-all duration-200"
+                  className="w-full sm:w-56 p-3.5 rounded-xl bg-tw-talc border border-tw-wave/15 hover:border-tw-wave/30 hover:shadow-md transition-all duration-200"
                 >
                   <div className={`inline-flex items-center justify-center w-7 h-7 rounded-full mb-2 ${step.iconClass}`}>
                     <step.icon className="w-3.5 h-3.5" />
@@ -142,9 +136,12 @@ export default function ChatView({
         )}
 
         {messages.map((msg, index) => (
-          <div key={index} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+          <div
+            key={index}
+            className={`msg-in flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+          >
             <div
-              className={`max-w-[90%] md:max-w-2xl rounded-xl p-3.5 md:p-4 text-sm font-sans shadow-sm ${
+              className={`max-w-[90%] md:max-w-2xl rounded-xl p-3.5 md:p-4 text-sm font-sans shadow-sm hover:shadow-md transition-shadow duration-200 ${
                 msg.role === 'user'
                   ? 'bg-tw-wave text-tw-talc rounded-br-none'
                   : msg.guardrailBlocked
@@ -258,7 +255,7 @@ export default function ChatView({
                       <span
                         key={src.document_id || src.filename}
                         title={msg.guardrailBlocked ? undefined : src.chunks.map((c) => c.text).join('\n\n')}
-                        className="bg-tw-mist border border-tw-wave/20 text-tw-wave px-2 py-0.5 rounded text-[11px] flex items-center gap-1 truncate max-w-full font-medium"
+                        className="bg-tw-mist border border-tw-wave/20 hover:border-tw-sapphire hover:bg-tw-sapphire/5 cursor-help transition-colors text-tw-wave px-2 py-0.5 rounded text-[11px] flex items-center gap-1 truncate max-w-full font-medium"
                       >
                         <FileText className="w-3 h-3 text-tw-sapphire shrink-0" /> {src.filename}
                         {src.chunks.length > 1 && (
@@ -274,7 +271,7 @@ export default function ChatView({
         ))}
 
         {querying && (
-          <div className="flex flex-col items-start">
+          <div className="msg-in flex flex-col items-start">
             <div className="max-w-[90%] md:max-w-2xl rounded-xl rounded-bl-none p-3.5 md:p-4 text-sm font-sans shadow-sm bg-tw-talc border border-tw-wave/20">
               <div className="mb-2 pb-2 border-b border-tw-wave/10 flex items-center gap-1.5 text-xs font-semibold text-tw-wave">
                 <Bot className="w-4 h-4 text-tw-sapphire" />
@@ -322,23 +319,23 @@ export default function ChatView({
               type="button"
               onClick={() => onSend(attack.prompt, { owaspId: attack.owaspId })}
               disabled={querying}
-              className="shrink-0 md:w-64 md:flex-1 text-left p-2.5 bg-tw-mist hover:bg-tw-wave/10 border border-tw-wave/20 hover:border-tw-wave rounded-lg text-xs font-sans transition group md:snap-start disabled:opacity-50"
+              className="shrink-0 md:w-64 md:flex-1 text-left p-2.5 bg-tw-mist hover:bg-tw-wave/10 border border-tw-wave/20 hover:border-tw-wave rounded-lg text-xs font-sans transition-all duration-200 hover:shadow-md group md:snap-start disabled:opacity-50 disabled:hover:shadow-none"
             >
-              <span className="font-semibold text-tw-wave group-hover:text-tw-pink block truncate">
-                <span className="inline-flex mr-1.5 px-1.5 py-0.5 rounded border border-tw-sapphire/40 bg-tw-talc text-[10px] text-tw-wave align-middle">
+              <span className="font-semibold text-tw-wave group-hover:text-tw-pink flex items-center gap-1.5 truncate">
+                <span className="inline-flex px-1.5 py-0.5 rounded border border-tw-sapphire/40 bg-tw-talc text-[10px] text-tw-wave shrink-0">
                   {attack.owaspId}
                 </span>
-                {attack.name}
-              </span>
-              <span className="text-[10px] text-tw-onyx/70 block truncate mt-0.5 whitespace-normal line-clamp-2">
-                {attack.desc}
+                <span className="truncate">{attack.name}</span>
               </span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="p-3 bg-tw-talc border-t border-tw-wave/15 pb-safe mb-4">
+      <div
+        className="p-3 bg-tw-talc border-t border-tw-wave/15"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.5rem)' }}
+      >
         <form
           onSubmit={(e) => {
             e.preventDefault()

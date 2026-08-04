@@ -50,6 +50,9 @@ MIN_WAIT = float(os.getenv("LOAD_TEST_MIN_WAIT", "1"))
 MAX_WAIT = float(os.getenv("LOAD_TEST_MAX_WAIT", "5"))
 
 
+NGROK_HEADERS = {"ngrok-skip-browser-warning": "1"}
+
+
 class ChatUser(HttpUser):
     """One simulated attendee asking questions against the RAG chatbot."""
 
@@ -65,6 +68,7 @@ class ChatUser(HttpUser):
                 "provider": PROVIDER,
                 "guardrails_enabled": GUARDRAILS_ENABLED,
             },
+            headers=NGROK_HEADERS,
             # Generation can legitimately take a long time under load;
             # don't let the client itself time out before the server does.
             timeout=180,

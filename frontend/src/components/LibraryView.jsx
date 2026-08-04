@@ -111,11 +111,11 @@ export default function LibraryView({
           <h2 className="text-xl md:text-2xl font-serif font-bold text-tw-wave mb-1">
             Document Library
           </h2>
-          <p className="text-xs md:text-sm text-tw-onyx/70">
+          {/* <p className="text-xs md:text-sm text-tw-onyx/70">
             Upload files here or drop them into{' '}
             <code className="bg-tw-talc border border-tw-wave/15 rounded px-1.5 py-0.5">sample-docs/</code>
             , then reindex to pick up anything added manually.
-          </p>
+          </p> */}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button
