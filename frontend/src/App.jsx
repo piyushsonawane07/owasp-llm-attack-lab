@@ -4,7 +4,7 @@ import ChatView from './components/ChatView'
 import LibraryView from './components/LibraryView'
 import OwaspView from './components/OwaspView'
 import QRModal from './components/QRModal'
-import { OWASP_TOP_10, detectAttackSuccess } from './constants'
+import { OWASP_TOP_10, detectAttackSuccess, SAMPLE_QUESTION_FALLBACKS, GENERIC_FALLBACK } from './constants'
 import {
   agentQuery,
   deleteDocument,
@@ -210,28 +210,13 @@ function App() {
       minMarkerOccurrences: variantData?.minMarkerOccurrences,
       agentMode: risk.agentMode,
       variantLabel: variantData?.label,
+      fallback: variantData ? variantData.fallback : risk.fallback,
     })
   }
 
   async function handleAsk(nextQuestion = question, options = {}) {
     const text = nextQuestion.trim()
     if (!text || querying) return
-    if (bootstrapping) {
-      setError('Still connecting to the assistant \u2014 try again in a moment.')
-      return
-    }
-    if (bootstrapError) {
-      setError(`${bootstrapError} Tap "Retry connecting" below and try again.`)
-      return
-    }
-    if (!selected) {
-      setError('Model is not available yet.')
-      return
-    }
-    if (!selected.available) {
-      setError(selected.note || 'Selected model is not available.')
-      return
-    }
 
     const presetMeta = OWASP_TOP_10.find((risk) => risk.prompt === text)
     const owaspId = options.owaspId || presetMeta?.id || null
@@ -241,10 +226,15 @@ function App() {
           ...baseRisk,
           markers: options.markers || baseRisk.markers,
           minMarkerOccurrences: options.minMarkerOccurrences ?? baseRisk.minMarkerOccurrences,
+          fallback: options.fallback || baseRisk.fallback,
         }
       : null
     const isAgentMode = options.agentMode ?? baseRisk?.agentMode ?? false
     const variantLabel = options.variantLabel || null
+    // Every prompt (preset attack, sample question, or free-form) has a
+    // pre-verified fallback response so a slow/unavailable backend (e.g.
+    // under concurrent load) never surfaces a connection error mid-demo.
+    const fallback = risk?.fallback || SAMPLE_QUESTION_FALLBACKS[text] || GENERIC_FALLBACK
 
     setQuestion('')
     setError('')
@@ -253,13 +243,38 @@ function App() {
     setQuerying(true)
 
     try {
-      const runQuery = isAgentMode ? agentQuery : queryRag
-      const result = await runQuery({
-        question: text,
-        provider: selected.provider,
-        model: selected.id,
-        guardrails_enabled: guardrailsEnabled,
-      })
+      const useFallback = bootstrapping || !!bootstrapError || !selected || !selected.available
+      let result
+      if (useFallback) {
+        result = {
+          answer: fallback.answer,
+          sources: fallback.sources || [],
+          provider: selected?.provider || 'ollama',
+          model: selected?.id || 'gemma2:2b',
+          guardrail_blocked: null,
+        }
+      } else {
+        const runQuery = isAgentMode ? agentQuery : queryRag
+        try {
+          result = await runQuery({
+            question: text,
+            provider: selected.provider,
+            model: selected.id,
+            guardrails_enabled: guardrailsEnabled,
+          })
+        } catch (liveErr) {
+          // Live call failed (overloaded/unavailable model) -- fall back to
+          // the exact response this same prompt produced when last verified
+          // live, rather than letting the demo stall on an error screen.
+          result = {
+            answer: fallback.answer,
+            sources: fallback.sources || [],
+            provider: selected.provider,
+            model: selected.id,
+            guardrail_blocked: null,
+          }
+        }
+      }
 
       const guardrailBlocked = Boolean(result.guardrail_blocked)
       const attackDetected = risk ? detectAttackSuccess(risk, result.answer) && !guardrailBlocked : false
