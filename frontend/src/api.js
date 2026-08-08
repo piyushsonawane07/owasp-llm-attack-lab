@@ -71,3 +71,13 @@ export function queryRag({ question, provider, model, guardrails_enabled }) {
     body: JSON.stringify({ question, provider, model, guardrails_enabled }),
   })
 }
+
+// Excessive Agency (LLM06) demo: no document retrieval — the model is handed
+// a destructive tool schema via the system prompt alone.
+export function agentQuery({ question, provider, model, guardrails_enabled }) {
+  return request('/api/agent-query', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, provider, model, guardrails_enabled }),
+  })
+}

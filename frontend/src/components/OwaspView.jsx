@@ -25,15 +25,28 @@ export default function OwaspView({ risks, onTryAttack, querying }) {
                 </div>
                 <h3 className="mt-2 text-sm md:text-base font-semibold text-tw-wave">{risk.title}</h3>
               </div>
-              <button
-                type="button"
-                onClick={() => onTryAttack(risk)}
-                disabled={querying}
-                className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-tw-pink hover:bg-tw-pink/90 disabled:opacity-50 text-tw-talc transition shadow"
-              >
-                <PlayCircle className="w-4 h-4" />
-                Try Attack
-              </button>
+              <div className="flex flex-col gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onTryAttack(risk)}
+                  disabled={querying}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-tw-pink hover:bg-tw-pink/90 disabled:opacity-50 text-tw-talc transition shadow"
+                >
+                  <PlayCircle className="w-4 h-4" />
+                  Try Attack
+                </button>
+                {risk.variantB && (
+                  <button
+                    type="button"
+                    onClick={() => onTryAttack(risk, 'B')}
+                    disabled={querying}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-tw-wave/30 text-tw-wave hover:border-tw-wave disabled:opacity-50 transition"
+                  >
+                    <PlayCircle className="w-3.5 h-3.5" />
+                    {risk.variantB.label}
+                  </button>
+                )}
+              </div>
             </div>
 
             <p className="text-xs text-tw-onyx/85 leading-relaxed">{risk.shortDesc}</p>

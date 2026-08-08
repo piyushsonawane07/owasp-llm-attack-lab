@@ -28,7 +28,7 @@ from app.services.library import (
     resolve_library_file,
 )
 from app.services.guardrails import GuardrailBlocked, check_input, check_output
-from app.services.llm import generate_answer, list_available_models
+from app.services.llm import generate_agent_action, generate_answer, list_available_models
 from app.services.parsers import extract_text, is_supported
 from app.services.vectorstore import store
 
@@ -338,6 +338,50 @@ async def query(body: QueryRequest) -> QueryResponse:
         provider=body.provider,
         model=model_name,
     )
+
+
+@app.post("/api/agent-query", response_model=QueryResponse)
+async def agent_query(body: QueryRequest) -> QueryResponse:
+    """Excessive Agency (LLM06) demo endpoint. No document retrieval — the
+    model is handed a destructive tool schema via the system prompt alone
+    and must decide on its own what action, if any, to take."""
+    if body.guardrails_enabled:
+        try:
+            await check_input(body.question)
+        except GuardrailBlocked as exc:
+            return QueryResponse(
+                answer=exc.message,
+                sources=[],
+                provider=body.provider,
+                model=body.model or "",
+                guardrail_blocked="input",
+            )
+
+    try:
+        answer, model_name = await generate_agent_action(
+            question=body.question,
+            provider=body.provider,
+            model=body.model,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Generation failed: {exc}") from exc
+
+    if body.guardrails_enabled:
+        block_message = await check_output(body.question, answer)
+        if block_message:
+            return QueryResponse(
+                answer=block_message,
+                sources=[],
+                provider=body.provider,
+                model=model_name,
+                guardrail_blocked="output",
+            )
+
+    return QueryResponse(answer=answer, sources=[], provider=body.provider, model=model_name)
 
 
 def main() -> None:

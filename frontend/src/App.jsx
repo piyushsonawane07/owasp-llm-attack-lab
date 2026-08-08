@@ -6,6 +6,7 @@ import OwaspView from './components/OwaspView'
 import QRModal from './components/QRModal'
 import { OWASP_TOP_10, detectAttackSuccess } from './constants'
 import {
+  agentQuery,
   deleteDocument,
   getDocuments,
   getLibrary,
@@ -165,9 +166,16 @@ function App() {
     }
   }
 
-  function handleTryAttack(risk) {
+  function handleTryAttack(risk, variant) {
     setTab('chat')
-    handleAsk(risk.prompt, { owaspId: risk.id })
+    const variantData = variant === 'B' ? risk.variantB : null
+    handleAsk(variantData ? variantData.prompt : risk.prompt, {
+      owaspId: risk.id,
+      markers: variantData?.markers,
+      minMarkerOccurrences: variantData?.minMarkerOccurrences,
+      agentMode: risk.agentMode,
+      variantLabel: variantData?.label,
+    })
   }
 
   async function handleAsk(nextQuestion = question, options = {}) {
@@ -184,16 +192,26 @@ function App() {
 
     const presetMeta = OWASP_TOP_10.find((risk) => risk.prompt === text)
     const owaspId = options.owaspId || presetMeta?.id || null
-    const risk = owaspId ? OWASP_TOP_10.find((r) => r.id === owaspId) : null
+    const baseRisk = owaspId ? OWASP_TOP_10.find((r) => r.id === owaspId) : null
+    const risk = baseRisk
+      ? {
+          ...baseRisk,
+          markers: options.markers || baseRisk.markers,
+          minMarkerOccurrences: options.minMarkerOccurrences ?? baseRisk.minMarkerOccurrences,
+        }
+      : null
+    const isAgentMode = options.agentMode ?? baseRisk?.agentMode ?? false
+    const variantLabel = options.variantLabel || null
 
     setQuestion('')
     setError('')
-    setMessages((prev) => [...prev, { role: 'user', content: text, owaspId }])
+    setMessages((prev) => [...prev, { role: 'user', content: text, owaspId, variantLabel }])
 
     setQuerying(true)
 
     try {
-      const result = await queryRag({
+      const runQuery = isAgentMode ? agentQuery : queryRag
+      const result = await runQuery({
         question: text,
         provider: selected.provider,
         model: selected.id,
@@ -213,6 +231,8 @@ function App() {
           model: result.model,
           provider: result.provider,
           owaspId,
+          variantLabel,
+          agentMode: isAgentMode,
           attackDetected,
           attackResisted,
           owaspMeta: risk

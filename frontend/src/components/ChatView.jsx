@@ -157,7 +157,7 @@ export default function ChatView({
             >
               {msg.role === 'user' && msg.owaspId && (
                 <span className="inline-block mb-1.5 text-[10px] font-bold px-2 py-0.5 rounded bg-tw-talc/15 text-tw-talc border border-tw-talc/30">
-                  {msg.owaspId} attack
+                  {msg.owaspId} attack{msg.variantLabel ? ` — ${msg.variantLabel}` : ''}
                 </span>
               )}
 
