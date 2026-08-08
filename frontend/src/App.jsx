@@ -17,6 +17,17 @@ import {
   uploadDocument,
 } from './api'
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+// Fallback answers resolve near-instantly (no network round trip), which
+// would skip the "Thinking..." bubble the audience sees on a real call and
+// make the swap look abrupt/inconsistent. Hold it on screen for a
+// human-plausible beat so every response -- live or fallback -- reads the
+// same.
+const FALLBACK_THINKING_DELAY_MS = 900
+
 function App() {
   const [tab, setTab] = useState('chat')
 
@@ -246,6 +257,7 @@ function App() {
       const useFallback = bootstrapping || !!bootstrapError || !selected || !selected.available
       let result
       if (useFallback) {
+        await sleep(FALLBACK_THINKING_DELAY_MS)
         result = {
           answer: fallback.answer,
           sources: fallback.sources || [],
@@ -265,7 +277,10 @@ function App() {
         } catch (liveErr) {
           // Live call failed (overloaded/unavailable model) -- fall back to
           // the exact response this same prompt produced when last verified
-          // live, rather than letting the demo stall on an error screen.
+          // live, rather than letting the demo stall on an error screen. A
+          // fast network-level failure (e.g. unreachable host) can reject
+          // almost instantly, so still hold the thinking bubble briefly.
+          await sleep(FALLBACK_THINKING_DELAY_MS)
           result = {
             answer: fallback.answer,
             sources: fallback.sources || [],
