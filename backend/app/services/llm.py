@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 import httpx
 from google import genai
 
@@ -173,7 +175,23 @@ async def list_available_models() -> list[ModelInfo]:
     ]
 
 
+# A short TTL cache so a room full of demo attendees hitting /api/models at
+# once (e.g. everyone loading the page together) doesn't turn into a burst of
+# concurrent /api/tags calls competing with in-flight /api/generate requests
+# on Ollama -- which is what was making the lightweight model list occasionally
+# time out under load.
+_MODELS_CACHE_TTL_SECONDS = 5.0
+_models_cache: tuple[float, list[str]] | None = None
+
+
 async def _fetch_ollama_models() -> list[str]:
+    global _models_cache
+
+    if _models_cache is not None:
+        cached_at, cached_models = _models_cache
+        if time.monotonic() - cached_at < _MODELS_CACHE_TTL_SECONDS:
+            return cached_models
+
     settings = get_settings()
     url = f"{settings.ollama_base_url.rstrip('/')}/api/tags"
     try:
@@ -181,6 +199,8 @@ async def _fetch_ollama_models() -> list[str]:
             response = await client.get(url)
             response.raise_for_status()
             data = response.json()
-            return [m.get("name") for m in data.get("models", []) if m.get("name")]
+            models = [m.get("name") for m in data.get("models", []) if m.get("name")]
+            _models_cache = (time.monotonic(), models)
+            return models
     except Exception:
         return []

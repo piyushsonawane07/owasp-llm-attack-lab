@@ -33,4 +33,5 @@ packages = ["app"]
 [dependency-groups]
 dev = [
     "locust>=2.46.3",
+    "playwright>=1.62.0",
 ]

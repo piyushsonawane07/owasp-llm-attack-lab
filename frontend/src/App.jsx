@@ -27,6 +27,15 @@ function App() {
   const [question, setQuestion] = useState('')
   const [querying, setQuerying] = useState(false)
   const [error, setError] = useState('')
+  // Guards against the chat input being clickable before /api/models and
+  // /api/documents resolve -- without this, an early Send click silently
+  // fails with "Model is not available yet." instead of just being disabled
+  // for the split second it takes to bootstrap.
+  const [bootstrapping, setBootstrapping] = useState(true)
+  // Set only if bootstrap() gives up after retries -- distinct from
+  // `error` (which is query-time) so a stale connectivity error can't be
+  // silently masked by handleAsk's generic "Model is not available yet."
+  const [bootstrapError, setBootstrapError] = useState('')
   const [guardrailsEnabled, setGuardrailsEnabled] = useState(false)
   const [showQRModal, setShowQRModal] = useState(false)
   const [qrUrl, setQrUrl] = useState(() => {
@@ -53,23 +62,49 @@ function App() {
     loadLibrary()
   }, [])
 
-  async function bootstrap() {
-    try {
-      const [docs, modelData] = await Promise.all([getDocuments(), getModels()])
-      setDocuments(docs)
-      setModels(modelData.models)
+  const BOOTSTRAP_MAX_ATTEMPTS = 4
 
+  // Under audience load, /api/models or /api/documents can transiently time
+  // out even though the backend is fine a couple seconds later -- retry with
+  // backoff instead of giving up (and leaving the UI stuck) on the first
+  // failure. Promise.allSettled means a single flaky endpoint doesn't block
+  // the other one from succeeding.
+  async function bootstrap(attempt = 1) {
+    setBootstrapping(true)
+    setBootstrapError('')
+
+    const [docsResult, modelsResult] = await Promise.allSettled([getDocuments(), getModels()])
+
+    if (docsResult.status === 'fulfilled') {
+      setDocuments(docsResult.value)
+    }
+    if (modelsResult.status === 'fulfilled') {
+      const modelData = modelsResult.value
+      setModels(modelData.models)
       const preferred =
         modelData.models.find((m) => m.provider === modelData.default_provider && m.available) ||
         modelData.models.find((m) => m.available) ||
         modelData.models[0]
-
       if (preferred) {
         setSelectedModelKey(`${preferred.provider}:${preferred.id}`)
       }
-    } catch (err) {
-      setError(err.message || 'Could not reach the API. Is the backend running?')
     }
+
+    const failure = [docsResult, modelsResult].find((r) => r.status === 'rejected')
+    if (!failure) {
+      setBootstrapping(false)
+      return
+    }
+
+    if (attempt < BOOTSTRAP_MAX_ATTEMPTS) {
+      setTimeout(() => bootstrap(attempt + 1), attempt * 1000)
+      return
+    }
+
+    setBootstrapError(
+      failure.reason?.message || 'Could not reach the API after several attempts. Is the backend running?'
+    )
+    setBootstrapping(false)
   }
 
   async function loadLibrary() {
@@ -181,6 +216,14 @@ function App() {
   async function handleAsk(nextQuestion = question, options = {}) {
     const text = nextQuestion.trim()
     if (!text || querying) return
+    if (bootstrapping) {
+      setError('Still connecting to the assistant \u2014 try again in a moment.')
+      return
+    }
+    if (bootstrapError) {
+      setError(`${bootstrapError} Tap "Retry connecting" below and try again.`)
+      return
+    }
     if (!selected) {
       setError('Model is not available yet.')
       return
@@ -277,6 +320,9 @@ function App() {
             <ChatView
               messages={messages}
               querying={querying}
+              bootstrapping={bootstrapping}
+              bootstrapError={bootstrapError}
+              onRetryConnection={() => bootstrap()}
               question={question}
               setQuestion={setQuestion}
               onSend={handleAsk}

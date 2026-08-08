@@ -61,6 +61,9 @@ const INTRO_STEPS = [
 export default function ChatView({
   messages,
   querying,
+  bootstrapping,
+  bootstrapError,
+  onRetryConnection,
   question,
   setQuestion,
   onSend,
@@ -124,7 +127,7 @@ export default function ChatView({
                   key={q}
                   type="button"
                   onClick={() => onSend(q)}
-                  disabled={!documents.length || querying}
+                  disabled={!documents.length || querying || bootstrapping || !!bootstrapError}
                   className="group p-3 bg-tw-talc hover:bg-tw-wave/5 border border-tw-wave/15 hover:border-tw-sapphire rounded-xl text-xs font-sans text-tw-wave transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
                 >
                   <MessageCircleQuestion className="w-3.5 h-3.5 text-tw-sapphire mb-1.5 mx-auto block group-hover:text-tw-pink transition-colors" />
@@ -290,6 +293,19 @@ export default function ChatView({
         <div ref={chatEndRef} />
       </div>
 
+      {bootstrapError && (
+        <div className="mx-3 mb-2 px-3 py-2 rounded-lg bg-tw-pink/10 border border-tw-pink/40 text-[#9d3145] text-xs font-sans font-semibold flex items-center justify-between gap-2">
+          <span>{bootstrapError}</span>
+          <button
+            type="button"
+            onClick={onRetryConnection}
+            className="shrink-0 px-2.5 py-1 rounded-md bg-tw-pink text-tw-talc text-[11px] font-bold hover:bg-tw-pink/90 transition"
+          >
+            Retry connecting
+          </button>
+        </div>
+      )}
+
       {error && (
         <div className="mx-3 mb-2 px-3 py-2 rounded-lg bg-tw-pink/10 border border-tw-pink/40 text-[#9d3145] text-xs font-sans font-semibold">
           {error}
@@ -318,7 +334,7 @@ export default function ChatView({
               key={i}
               type="button"
               onClick={() => onSend(attack.prompt, { owaspId: attack.owaspId })}
-              disabled={querying}
+              disabled={querying || bootstrapping}
               className="shrink-0 md:w-64 md:flex-1 text-left p-2.5 bg-tw-mist hover:bg-tw-wave/10 border border-tw-wave/20 hover:border-tw-wave rounded-lg text-xs font-sans transition-all duration-200 hover:shadow-md group md:snap-start disabled:opacity-50 disabled:hover:shadow-none"
             >
               <span className="font-semibold text-tw-wave group-hover:text-tw-pink flex items-center gap-1.5 truncate">
@@ -348,16 +364,20 @@ export default function ChatView({
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder={
-              documents.length
+              bootstrapping
+                ? 'Connecting to the assistant\u2026'
+                : bootstrapError
+                ? 'Connection failed \u2014 tap "Retry connecting" above'
+                : documents.length
                 ? 'Type a message or run a prompt injection attack…'
                 : 'No documents indexed yet…'
             }
-            disabled={querying}
+            disabled={querying || bootstrapping || !!bootstrapError}
             className="flex-1 bg-tw-talc border border-tw-wave/30 rounded-lg px-4 py-2.5 text-sm font-sans text-tw-onyx placeholder-tw-wave/50 focus:outline-none focus:border-tw-pink focus:ring-1 focus:ring-tw-pink transition disabled:opacity-60"
           />
           <button
             type="submit"
-            disabled={querying || !question.trim()}
+            disabled={querying || bootstrapping || !!bootstrapError || !question.trim()}
             className="bg-tw-pink hover:bg-tw-pink/90 disabled:opacity-50 text-tw-talc font-sans font-semibold px-4 md:px-5 py-2.5 rounded-lg text-sm transition flex items-center gap-1.5 shadow-md shrink-0"
           >
             <span className="hidden sm:inline">Send</span>
