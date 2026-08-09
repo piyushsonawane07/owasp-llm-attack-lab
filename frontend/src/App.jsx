@@ -4,7 +4,14 @@ import ChatView from './components/ChatView'
 import LibraryView from './components/LibraryView'
 import OwaspView from './components/OwaspView'
 import QRModal from './components/QRModal'
-import { OWASP_TOP_10, detectAttackSuccess, SAMPLE_QUESTION_FALLBACKS, GENERIC_FALLBACK } from './constants'
+import {
+  OWASP_TOP_10,
+  detectAttackSuccess,
+  SAMPLE_QUESTION_FALLBACKS,
+  GENERIC_FALLBACK,
+  GUARDRAIL_BLOCK_MESSAGES,
+  OWASP_GUARDRAIL_EXPECTATION,
+} from './constants'
 import {
   agentQuery,
   deleteDocument,
@@ -253,18 +260,36 @@ function App() {
 
     setQuerying(true)
 
+    // When guardrails are ON, a fallback must still behave like a guarded
+    // response -- otherwise a preset attack whose real answer would have
+    // been blocked (e.g. LLM01/LLM02/LLM07/LLM08/LLM09) would incorrectly
+    // render as "exploited" just because the live call was skipped/failed.
+    const guardrailExpectation = owaspId ? OWASP_GUARDRAIL_EXPECTATION[owaspId] : null
+    function buildFallbackResult(provider, model) {
+      if (guardrailsEnabled && guardrailExpectation) {
+        return {
+          answer: GUARDRAIL_BLOCK_MESSAGES[guardrailExpectation],
+          sources: guardrailExpectation === 'input' ? [] : fallback.sources || [],
+          provider,
+          model,
+          guardrail_blocked: guardrailExpectation,
+        }
+      }
+      return {
+        answer: fallback.answer,
+        sources: fallback.sources || [],
+        provider,
+        model,
+        guardrail_blocked: null,
+      }
+    }
+
     try {
       const useFallback = bootstrapping || !!bootstrapError || !selected || !selected.available
       let result
       if (useFallback) {
         await sleep(FALLBACK_THINKING_DELAY_MS)
-        result = {
-          answer: fallback.answer,
-          sources: fallback.sources || [],
-          provider: selected?.provider || 'ollama',
-          model: selected?.id || 'gemma2:2b',
-          guardrail_blocked: null,
-        }
+        result = buildFallbackResult(selected?.provider || 'ollama', selected?.id || 'gemma2:2b')
       } else {
         const runQuery = isAgentMode ? agentQuery : queryRag
         try {
@@ -281,13 +306,7 @@ function App() {
           // fast network-level failure (e.g. unreachable host) can reject
           // almost instantly, so still hold the thinking bubble briefly.
           await sleep(FALLBACK_THINKING_DELAY_MS)
-          result = {
-            answer: fallback.answer,
-            sources: fallback.sources || [],
-            provider: selected.provider,
-            model: selected.id,
-            guardrail_blocked: null,
-          }
+          result = buildFallbackResult(selected.provider, selected.id)
         }
       }
 

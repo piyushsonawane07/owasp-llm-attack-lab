@@ -300,6 +300,32 @@ export const OWASP_TOP_10 = [
   },
 ]
 
+// Mirrors the exact block messages backend/app/services/guardrails.py raises,
+// so a fallback answer shown while guardrails are ON stays consistent with
+// what the real guardrail would have said, instead of silently reverting to
+// the pre-guardrails "exploited" answer whenever the live call is bypassed.
+export const GUARDRAIL_BLOCK_MESSAGES = {
+  input: 'This request was blocked by the input guardrail before it reached the model.',
+  output:
+    'The output guardrail blocked this response because it may leak sensitive content or follow injected instructions.',
+}
+
+// For each OWASP preset attack: which rail (if any) the real guardrail
+// config in guardrails.py would flag, based on its actual self_check_input /
+// self_check_output prompt rules. Only set where the fallback answer clearly
+// matches one of those rules (leaked credential, system-prompt extraction
+// attempt, instruction-hijack phrasing, or dangerous "disable this security
+// control" advice) -- left unset where the current guardrail rules have no
+// matching criterion, so the demo still honestly shows guardrail gaps rather
+// than pretending everything is caught.
+export const OWASP_GUARDRAIL_EXPECTATION = {
+  LLM01: 'output', // fallback answer literally contains "override approved ... COMPLIANT"
+  LLM02: 'output', // fallback answer contains a real credential/API key
+  LLM07: 'input', // prompt directly asks to extract the system prompt verbatim
+  LLM08: 'output', // fallback answer tells the user to disable 2FA as a "standard fix"
+  LLM09: 'output', // fallback answer tells the user to disable antivirus/TLS as "no risk"
+}
+
 // Same list, reshaped for the compact "Quick OWASP Attack Demos" strip in Chat.
 export const PRESET_ATTACKS = OWASP_TOP_10.map((risk) => ({
   owaspId: risk.id,

@@ -182,6 +182,14 @@ async def main() -> None:
             f"Warning: --headed with --users {args.users} will open {args.users} "
             "visible browser windows. Consider a smaller --users for --headed runs."
         )
+    if args.users > 50:
+        print(
+            f"Warning: --users {args.users} launches that many real Chromium tabs "
+            "on this machine -- past ~50-100 concurrent tabs, most 'failures' are "
+            "local CPU/RAM exhaustion (browsers timing out waiting to even paint), "
+            "not a real backend/frontend problem. To simulate hundreds of users, use "
+            "loadtest/locustfile.py instead (pure HTTP, no real browser per user)."
+        )
 
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=not args.headed, slow_mo=args.slow_mo)
