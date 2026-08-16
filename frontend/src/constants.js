@@ -200,7 +200,7 @@ export const OWASP_TOP_10 = [
   },
   {
     id: 'LLM07',
-    title: 'System Prompt Leakage',
+    title: 'Hidden Content Exposure',
     shortDesc: 'A debug directive embedded in a document tries to force disclosure of hidden instructions.',
     impact: 'Hidden operating/system instructions were exposed to an ordinary user.',
     mitigation: 'Keep system instructions out of retrievable content and never treat them as user-controllable.',

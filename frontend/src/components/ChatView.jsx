@@ -113,15 +113,15 @@ export default function ChatView({
               ))}
             </div>
 
-            <div className="flex items-center gap-3 max-w-xl mx-auto mb-3">
+            {/* <div className="flex items-center gap-3 max-w-xl mx-auto mb-3">
               <span className="h-px flex-1 bg-tw-wave/15" />
               <p className="text-xs font-semibold text-tw-wave/80 font-sans whitespace-nowrap">
                 Start with a clean question
               </p>
               <span className="h-px flex-1 bg-tw-wave/15" />
-            </div>
+            </div> */}
 
-            <div className="grid sm:grid-cols-3 gap-2.5 text-left max-w-xl mx-auto">
+            {/* <div className="grid sm:grid-cols-3 gap-2.5 text-left max-w-xl mx-auto">
               {SAMPLE_QUESTIONS.map((q) => (
                 <button
                   key={q}
@@ -134,7 +134,7 @@ export default function ChatView({
                   <span className="block leading-snug">{q}</span>
                 </button>
               ))}
-            </div>
+            </div> */}
           </div>
         )}
 
