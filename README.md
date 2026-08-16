@@ -9,6 +9,10 @@ There's no simulator and no canned "attack" responses. Poisoned/sensitive conten
 
 Upload your own `.md`, `.pdf`, `.docx`, or `.txt` documents, ask questions, inspect retrieved source chunks, and walk through each OWASP risk with a live, reproducible example.
 
+
+<img width="1725" height="896" alt="Screenshot 2026-08-16 at 9 55 55 AM" src="https://github.com/user-attachments/assets/6647084c-6320-4f0a-b80f-61f405f258d3" />
+
+
 ## Stack
 
 | Layer | Choice |
