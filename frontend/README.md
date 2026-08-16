@@ -1,16 +1,31 @@
-# React + Vite
+# Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite UI for the [OWASP LLM Attack Lab](../README.md): document upload, chat, and the OWASP Top 10 for LLM Applications walkthrough.
 
-Currently, two official plugins are available:
+```bash
+cp .env.example .env
+npm install
+npm run dev -- --host
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Open the printed local URL (default `http://localhost:5173`). The Vite dev server proxies `/api` to the backend on port `8088` (see `vite.config.js`).
 
-## React Compiler
+## Scripts
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Vite dev server |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | Run `oxlint` |
 
-## Expanding the Oxlint configuration
+## Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+```
+src/
+  App.jsx              # Upload + chat UI, top-level state
+  components/           # ChatView, OwaspView, and other UI pieces
+  constants.js          # OWASP Top 10 prompts, impacts, and mitigations
+```
+
+See the [root README](../README.md) for the full quick start, API reference, and environment variables.
